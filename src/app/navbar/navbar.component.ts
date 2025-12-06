@@ -43,6 +43,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.currentUserEmail = this.authService.getStoredEmail();
     this.sessionSub = this.authService.session$.subscribe((session) => {
       this.currentUserEmail = session?.user?.email ?? this.authService.getStoredEmail();
+      if (!session) {
+        this.resetAuthUiState();
+      }
     });
   }
 
@@ -117,10 +120,15 @@ export class NavbarComponent implements OnInit, OnDestroy {
     await this.authService.signOut();
     this.isSubmitting = false;
     this.currentUserEmail = null;
-    this.statusMessage = '';
-    this.email = '';
+    this.resetAuthUiState();
+  }
+
+  private resetAuthUiState() {
     this.isSettingsModalOpen = false;
     this.isAuthModalOpen = false;
     this.emailSent = false;
+    this.statusMessage = '';
+    this.email = '';
+    this.isSubmitting = false;
   }
 }
