@@ -43,6 +43,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.currentUserEmail = this.authService.getStoredEmail();
     this.sessionSub = this.authService.session$.subscribe((session) => {
       this.currentUserEmail = session?.user?.email ?? this.authService.getStoredEmail();
+      if (!session) {
+        this.resetAuthUiState();
+      }
     });
   }
 
@@ -98,17 +101,18 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.statusMessage = 'Please enter your email to continue.';
       return;
     }
+    this.emailSent = true;
     this.isSubmitting = true;
-    this.statusMessage = '';
+    this.statusMessage = 'Sending...';
     const { error } = await this.authService.signInWithEmail(this.email);
     this.isSubmitting = false;
     if (error) {
       this.statusMessage = error.message;
+      this.emailSent = false;
       return;
     }
     this.currentUserEmail = this.email;
     this.statusMessage = 'Please check your email.';
-    this.emailSent = true;
   }
 
   async onLogout() {
@@ -116,8 +120,15 @@ export class NavbarComponent implements OnInit, OnDestroy {
     await this.authService.signOut();
     this.isSubmitting = false;
     this.currentUserEmail = null;
+    this.resetAuthUiState();
+  }
+
+  private resetAuthUiState() {
+    this.isSettingsModalOpen = false;
+    this.isAuthModalOpen = false;
+    this.emailSent = false;
     this.statusMessage = '';
     this.email = '';
-    this.isSettingsModalOpen = false;
+    this.isSubmitting = false;
   }
 }
